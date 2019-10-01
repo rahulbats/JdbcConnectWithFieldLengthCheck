@@ -63,8 +63,8 @@ public class JdbcDbWriterWithFieldCheck {
                     tableId.tableName(),
                     null);
 
-            AtomicBoolean sizeCorrect = new AtomicBoolean(true);
-            columnDefs.forEach((columnId,columnDefinition)->{
+            boolean sizeCorrect =true;
+            /*columnDefs.forEach((columnId,columnDefinition)->{
                 if(textFields.contains(columnId.name())){
                     String recordValue= (String) ((Struct) record.value()).get(columnId.name());
 
@@ -73,9 +73,27 @@ public class JdbcDbWriterWithFieldCheck {
                     if(!columnDefinition.isOptional() && correct)
                         correct = recordValue.length()>0;
                     sizeCorrect.set(correct);
+
                 }
-            });
-            if(sizeCorrect.get()) {
+            });*/
+
+            Set<ColumnId> columnIds = columnDefs.keySet();
+            for(ColumnId columnId: columnIds) {
+                if(textFields.contains(columnId.name())){
+                    String recordValue= (String) ((Struct) record.value()).get(columnId.name());
+
+                    ColumnDefinition columnDefinition = columnDefs.get(columnId);
+                    boolean correct = recordValue.length() <= columnDefinition.precision();
+                    if(!columnDefinition.isOptional() && correct)
+                        correct = recordValue.length()>0;
+                    sizeCorrect = correct;
+                    if(sizeCorrect==false)
+                        break;
+                }
+            }
+
+
+            if(sizeCorrect) {
                 BufferedRecords buffer = bufferByTable.get(tableId);
                 if (buffer == null) {
                     buffer = new BufferedRecords(config, tableId, dbDialect, dbStructure, connection);
