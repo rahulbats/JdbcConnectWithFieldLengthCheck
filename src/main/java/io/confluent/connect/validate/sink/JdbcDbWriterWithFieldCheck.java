@@ -68,13 +68,10 @@ public class JdbcDbWriterWithFieldCheck {
                 if(textFields.contains(columnId.name())){
                     String recordValue= (String) ((Struct) record.value()).get(columnId.name());
 
-                    log.info("setting atomic boolean for "+columnId.name()+":"+recordValue+":optional:"+columnDefinition.isOptional()+":"+(recordValue.length()>0 && !columnDefinition.isOptional()));
-                    log.info("field length check :"+columnDefinition.tableId().tableName()+":"+recordValue.length()+":"+columnDefinition.precision());
 
                     boolean correct = recordValue.length() <= columnDefinition.precision();
                     if(!columnDefinition.isOptional() && correct)
                         correct = recordValue.length()>0;
-                    log.info("total boolean value "+correct);
                     sizeCorrect.set(correct);
                 }
             });

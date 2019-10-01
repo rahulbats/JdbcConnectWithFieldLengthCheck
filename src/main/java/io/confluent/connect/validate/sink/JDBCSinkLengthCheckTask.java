@@ -42,40 +42,12 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
     int remainingRetries;
 
     String deadLetterTopic = null;
-    /*Properties deadletterProps = new Properties();
 
-    String  dlqBootStrapServer = null;
-    String saslMechanism = null;
-    String securityProtocol = null;
-    String saslJaasConfig = null;
-    String sslTrustStoreLocation = null;
-    String sslTrustStoreCredential = null;
-    String sslTrustStoreKey = null;*/
 
     Producer<String, String> dlqProducer = null;
     boolean DLQConfigured = false;
 
-    /*private void initDLQProducer() {
-        log.info("initing a DLQ procuder with boostrap server :"+dlqBootStrapServer+": topic :"+deadLetterTopic+":SASL jaas config: "+saslJaasConfig+":sasl mechanism: "+saslMechanism);
-        deadletterProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,dlqBootStrapServer);
-        deadletterProps.put(ProducerConfig.CLIENT_ID_CONFIG, deadLetterTopic);
-        deadletterProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName());
-        deadletterProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName());
-        if(saslJaasConfig!=null)
-            deadletterProps.put(SaslConfigs.SASL_JAAS_CONFIG, saslJaasConfig);
-        if(saslMechanism!=null)
-         deadletterProps.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
-        if(securityProtocol!=null)
-            deadletterProps.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-        if(sslTrustStoreLocation!=null)
-            deadletterProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTrustStoreLocation);
-        if(sslTrustStoreCredential!=null)
-            deadletterProps.put("ssl.truststore.credentials", sslTrustStoreCredential);
-        deadletterProps.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, sslTrustStoreKey);
-        dlqProducer = new KafkaProducer<String, String>(deadletterProps);
-    }*/
+
 
     @Override
     public void start(final Map<String, String> props) {
@@ -99,9 +71,7 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
                     .forEach(key-> {
 
                          String generatedKey = key.substring(beginIndex).toLowerCase().replace('_','.');
-                        log.info("this is the key: "+key+":beginindex:"+beginIndex+":generated key:"+key.substring(beginIndex).toLowerCase().replace('_','.')+":value for prop:"+props.get(key));
-                        log.info(deadletterProps.toString());
-                         deadletterProps.put( generatedKey, props.get(key));
+                        deadletterProps.put( generatedKey, props.get(key));
                     } );
 
             deadletterProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
@@ -150,8 +120,6 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
            if(DLQConfigured) {
 
                rejections.forEach(sinkRecord -> {
-                   //((Struct)sinkRecord.value()).toString();
-
                    dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,((Struct)sinkRecord.value()).toString()));
                });
            }
