@@ -7,8 +7,11 @@ A better way is to bake this into the connector logic and these connector is bui
 
 ### JDBC Connector workflow
  
-image::JDBC-connector.png[JDBC connector workflow] 
+
+image:JDBC-connector.png[JDBC connector workflow] 
 
 
 ### JDBC Connector with length check workflow
-image::JDB-Length-Check-connector.png[JDBC length check connector workflow]
+image:JDB-Length-Check-connector.png[JDBC length check connector workflow]
+
+image:https://i.imgur.com/AEkqoRn.jpg[alt="not bad.",width=128,height=128]
