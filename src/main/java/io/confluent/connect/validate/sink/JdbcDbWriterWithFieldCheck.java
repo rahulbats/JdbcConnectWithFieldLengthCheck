@@ -63,19 +63,7 @@ public class JdbcDbWriterWithFieldCheck {
                     tableId.tableName(),
                     null);
 
-            boolean sizeCorrect =true;
-            /*columnDefs.forEach((columnId,columnDefinition)->{
-                if(textFields.contains(columnId.name())){
-                    String recordValue= (String) ((Struct) record.value()).get(columnId.name());
-
-
-                    boolean correct = recordValue.length() <= columnDefinition.precision();
-                    if(!columnDefinition.isOptional() && correct)
-                        correct = recordValue.length()>0;
-                    sizeCorrect.set(correct);
-
-                }
-            });*/
+            boolean correct =true;
 
             Set<ColumnId> columnIds = columnDefs.keySet();
             for(ColumnId columnId: columnIds) {
@@ -83,17 +71,24 @@ public class JdbcDbWriterWithFieldCheck {
                     String recordValue= (String) ((Struct) record.value()).get(columnId.name());
 
                     ColumnDefinition columnDefinition = columnDefs.get(columnId);
-                    boolean correct = recordValue.length() <= columnDefinition.precision();
-                    if(!columnDefinition.isOptional() && correct)
-                        correct = recordValue.length()>0;
-                    sizeCorrect = correct;
-                    if(sizeCorrect==false)
+                    //log.info("Column: "+columnId.name()+" Length: "+recordValue.length()+", DB Len: "+columnDefinition.precision()+", isNull: "+ columnDefinition.isOptional());
+                    if(recordValue!=null && columnDefinition!=null)
+                    {
+                        correct=recordValue.length() <= columnDefinition.precision();
+                        if(!columnDefinition.isOptional() && correct)
+                            correct = recordValue.length()>0;
+                    }
+
+                    if(correct==false)
+                    {
+                        log.info("Can't send the record to DB, breaking");
                         break;
+                    }
                 }
             }
 
 
-            if(sizeCorrect) {
+            if(correct) {
                 BufferedRecords buffer = bufferByTable.get(tableId);
                 if (buffer == null) {
                     buffer = new BufferedRecords(config, tableId, dbDialect, dbStructure, connection);
@@ -102,7 +97,7 @@ public class JdbcDbWriterWithFieldCheck {
                 buffer.add(record);
             }
             else {
-               log.error("failed writing record :"+record);
+                log.error("failed writing record :"+record);
                 rejectedRecords.add(record);
             }
         }

@@ -70,7 +70,7 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
                     .filter(key->key.startsWith(underscoredPrefix))
                     .forEach(key-> {
 
-                         String generatedKey = key.substring(beginIndex).toLowerCase().replace('_','.');
+                        String generatedKey = key.substring(beginIndex).toLowerCase().replace('_','.');
                         deadletterProps.put( generatedKey, props.get(key));
                     } );
 
@@ -112,17 +112,17 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
                 recordsCount, first.topic(), first.kafkaPartition(), first.kafkaOffset()
         );
         try {
-           List<SinkRecord> rejections = writer.write(records);
+            List<SinkRecord> rejections = writer.write(records);
 
-           log.error("rejected records "+rejections);
-           log.info("is DLQ configured "+DLQConfigured);
-           //log.info("sending to DLQ procuder with boostrap server :"+dlqBootStrapServer+": topic :"+deadLetterTopic+":SASL jaas config: "+saslJaasConfig+":sasl mechanism: "+saslMechanism);
-           if(DLQConfigured) {
+            log.error("rejected records "+rejections);
+            log.info("is DLQ configured "+DLQConfigured);
+            //log.info("sending to DLQ procuder with boostrap server :"+dlqBootStrapServer+": topic :"+deadLetterTopic+":SASL jaas config: "+saslJaasConfig+":sasl mechanism: "+saslMechanism);
+            if(DLQConfigured) {
 
-               rejections.forEach(sinkRecord -> {
-                   dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,((Struct)sinkRecord.value()).toString()));
-               });
-           }
+                rejections.forEach(sinkRecord -> {
+                    dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,((Struct)sinkRecord.value()).toString()));
+                });
+            }
 
 
         } catch (SQLException sqle) {
