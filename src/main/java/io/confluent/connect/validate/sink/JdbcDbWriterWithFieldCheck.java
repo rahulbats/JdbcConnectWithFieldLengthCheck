@@ -4,10 +4,7 @@ import io.confluent.connect.jdbc.dialect.DatabaseDialect;
 import io.confluent.connect.jdbc.sink.BufferedRecords;
 import io.confluent.connect.jdbc.sink.DbStructure;
 import io.confluent.connect.jdbc.sink.JdbcSinkConfig;
-import io.confluent.connect.jdbc.util.CachedConnectionProvider;
-import io.confluent.connect.jdbc.util.ColumnDefinition;
-import io.confluent.connect.jdbc.util.ColumnId;
-import io.confluent.connect.jdbc.util.TableId;
+import io.confluent.connect.jdbc.util.*;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -17,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -27,12 +25,13 @@ public class JdbcDbWriterWithFieldCheck {
     private final DatabaseDialect dbDialect;
     private final DbStructure dbStructure;
     final CachedConnectionProvider cachedConnectionProvider;
+    private final TableDefinitions tableDefns;
 
     JdbcDbWriterWithFieldCheck(final JdbcSinkConfig config, DatabaseDialect dbDialect, DbStructure dbStructure) {
         this.config = config;
         this.dbDialect = dbDialect;
         this.dbStructure = dbStructure;
-
+        this.tableDefns = new TableDefinitions(dbDialect);
         this.cachedConnectionProvider = new CachedConnectionProvider(this.dbDialect) {
             @Override
             protected void onConnect(Connection connection) throws SQLException {
@@ -56,21 +55,20 @@ public class JdbcDbWriterWithFieldCheck {
                     .map(field -> field.name())
                     .collect(Collectors.toList());
 
+            long startofTableDef = new Date().getTime();
+            TableDefinition tableDefinition = tableDefns.get(connection, tableId);
+            log.info("got tabledef in "+(new Date().getTime()-startofTableDef));
 
-            Map<ColumnId, ColumnDefinition> columnDefs = dbDialect.describeColumns(connection,
-                    tableId.catalogName(),
-                    tableId.schemaName(),
-                    tableId.tableName(),
-                    null);
 
             boolean correct =true;
 
-            Set<ColumnId> columnIds = columnDefs.keySet();
-            for(ColumnId columnId: columnIds) {
-                if(textFields.contains(columnId.name())){
-                    String recordValue= (String) ((Struct) record.value()).get(columnId.name());
+            //Set<ColumnId> columnIds = columnDefs.keySet();
+            for(String columnName: tableDefinition.columnNames()) {
 
-                    ColumnDefinition columnDefinition = columnDefs.get(columnId);
+                if(textFields.contains(columnName)){
+                    String recordValue= (String) ((Struct) record.value()).get(columnName);
+
+                    ColumnDefinition columnDefinition = tableDefinition.definitionForColumn(columnName);
                     //log.info("Column: "+columnId.name()+" Length: "+recordValue.length()+", DB Len: "+columnDefinition.precision()+", isNull: "+ columnDefinition.isOptional());
                     if(recordValue!=null && columnDefinition!=null)
                     {

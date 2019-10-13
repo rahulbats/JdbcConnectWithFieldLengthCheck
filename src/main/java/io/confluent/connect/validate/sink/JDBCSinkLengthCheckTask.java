@@ -51,7 +51,7 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
 
     @Override
     public void start(final Map<String, String> props) {
-        log.info("Starting JDBC Sink task");
+        log.debug("Starting JDBC Sink task");
         config = new JdbcSinkConfig(props);
         initWriter();
         remainingRetries = config.maxRetries;
@@ -79,7 +79,7 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
             deadletterProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                     StringSerializer.class.getName());
 
-            log.info("creating producer with props :"+props.toString());
+            log.debug("creating producer with props :"+props.toString());
 
             dlqProducer = new KafkaProducer<String, String>(deadletterProps);
 
@@ -95,7 +95,7 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
             dialect = DatabaseDialects.findBestFor(config.connectionUrl, config);
         }
         final DbStructure dbStructure = new DbStructure(dialect);
-        log.info("Initializing writer using SQL dialect: {}", dialect.getClass().getSimpleName());
+        log.debug("Initializing writer using SQL dialect: {}", dialect.getClass().getSimpleName());
         writer = new JdbcDbWriterWithFieldCheck(config, dialect, dbStructure);
     }
 
@@ -114,8 +114,8 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
         try {
             List<SinkRecord> rejections = writer.write(records);
 
-            log.error("rejected records "+rejections);
-            log.info("is DLQ configured "+DLQConfigured);
+            log.info("rejected records "+rejections);
+            log.debug("is DLQ configured "+DLQConfigured);
             //log.info("sending to DLQ procuder with boostrap server :"+dlqBootStrapServer+": topic :"+deadLetterTopic+":SASL jaas config: "+saslJaasConfig+":sasl mechanism: "+saslMechanism);
             if(DLQConfigured) {
 
