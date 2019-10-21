@@ -1,11 +1,11 @@
 package io.confluent.connect.validate.sink;
 
-
 import io.confluent.connect.jdbc.dialect.DatabaseDialect;
 import io.confluent.connect.jdbc.dialect.DatabaseDialects;
 import io.confluent.connect.jdbc.sink.DbStructure;
 import io.confluent.connect.jdbc.sink.JdbcSinkConfig;
 import io.confluent.connect.jdbc.sink.JdbcSinkTask;
+
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -16,6 +16,8 @@ import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -46,7 +48,6 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
 
     Producer<String, String> dlqProducer = null;
     boolean DLQConfigured = false;
-
 
 
     @Override
@@ -99,6 +100,24 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
         writer = new JdbcDbWriterWithFieldCheck(config, dialect, dbStructure);
     }
 
+
+    private String convertToJSON(Struct sinkRecord) {
+
+            final StringBuilder sb = new StringBuilder("{");
+            boolean first = true;
+            Schema schema = sinkRecord.schema();
+            boolean started = false;
+            for(Field field: schema.fields()) {
+                if(started)
+                    sb.append(',');
+                else
+                    started = true;
+                sb.append('\"').append(field.name()).append('\"').append(":").append('\"').append(sinkRecord.get(field.name())).append('\"');
+            }
+            return sb.append("}").toString();
+
+    }
+
     @Override
     public void put(Collection<SinkRecord> records) {
         if (records.isEmpty()) {
@@ -116,11 +135,13 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
 
             log.info("rejected records "+rejections);
             log.debug("is DLQ configured "+DLQConfigured);
+
             //log.info("sending to DLQ procuder with boostrap server :"+dlqBootStrapServer+": topic :"+deadLetterTopic+":SASL jaas config: "+saslJaasConfig+":sasl mechanism: "+saslMechanism);
             if(DLQConfigured) {
 
                 rejections.forEach(sinkRecord -> {
-                    dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,((Struct)sinkRecord.value()).toString()));
+                    String jsonString = convertToJSON((Struct)sinkRecord.value());
+                    dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,( jsonString )));
                 });
             }
 
