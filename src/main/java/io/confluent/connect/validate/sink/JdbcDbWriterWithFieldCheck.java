@@ -63,6 +63,7 @@ public class JdbcDbWriterWithFieldCheck {
             boolean correct =true;
 
             //Set<ColumnId> columnIds = columnDefs.keySet();
+            String rejectionMessage="";
             for(String columnName: tableDefinition.columnNames()) {
 
                 if(textFields.contains(columnName)){
@@ -72,9 +73,19 @@ public class JdbcDbWriterWithFieldCheck {
                     //log.info("Column: "+columnId.name()+" Length: "+recordValue.length()+", DB Len: "+columnDefinition.precision()+", isNull: "+ columnDefinition.isOptional());
                     if(recordValue!=null && columnDefinition!=null)
                     {
-                        correct=recordValue.length() <= columnDefinition.precision();
-                        if(!columnDefinition.isOptional() && correct)
-                            correct = recordValue.length()>0;
+
+                        if(recordValue.length() > columnDefinition.precision())
+                        {
+                            correct= false;
+                            rejectionMessage = columnName+" size:"+recordValue.length()+" is greater than the DB length:"+columnDefinition.precision();
+                            break;
+                        }
+                        if(!columnDefinition.isOptional() ) {
+                            correct = recordValue.length() > 0;
+                            if(!correct){
+                                rejectionMessage = columnName+" is empty but its not a optional field in Database";
+                            }
+                        }
                     }
 
                     if(correct==false)
@@ -96,6 +107,8 @@ public class JdbcDbWriterWithFieldCheck {
             }
             else {
                 log.error("failed writing record :"+record);
+                record.headers().addString("DBErrorMessage",rejectionMessage);
+                log.info("error record headers "+record.headers());
                 rejectedRecords.add(record);
             }
         }

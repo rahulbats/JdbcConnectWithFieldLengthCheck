@@ -15,6 +15,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
@@ -141,7 +143,13 @@ public class JDBCSinkLengthCheckTask extends JdbcSinkTask {
 
                 rejections.forEach(sinkRecord -> {
                     String jsonString = convertToJSON((Struct)sinkRecord.value());
-                    dlqProducer.send(new ProducerRecord<String, String>(this.deadLetterTopic,( jsonString )));
+                    ProducerRecord<String, String> producerRecord = new ProducerRecord<String, String>(this.deadLetterTopic,( jsonString ));
+                    Headers headers =producerRecord.headers();
+
+                    sinkRecord.headers().forEach(sinkRecordHeader->{
+                        headers.add(sinkRecordHeader.key(), sinkRecordHeader.value().toString().getBytes());
+                    });
+                    dlqProducer.send(producerRecord);
                 });
             }
 
