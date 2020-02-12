@@ -29,9 +29,28 @@
                         </goals>
                         <configuration>
                             <title> Kafka Connect JDBC - Downstream DB Precision Enforcement</title>
+                            <documentationUrl>https://github.com/rahulbats/JdbcConnectWithFieldLengthCheck</documentationUrl>
                             <description>
-                                This JDBC connector expands on 
+                                This JDBC connector expands on the regular JDBC connector in Confluent Hub to add the functionality of checking field requirements in the downstream database in order to attempt
+                                inserting records. The sink connector will check on field precision definition in order to decide whether to insert the record or not.
+
+                                Note: This only works if the downstream DB enforces field precision.
+
+                                If the records isn't compatible, it will send the record to a configurable topic as a DLQ. Please read more in the repo link.
                             </description>
+                            <componentTypes>
+                                <componentType>sink</componentType>
+                            </componentTypes>
+                            <tags>
+                                <tag>JDBC</tag>
+                                <tag>Field</tag>
+                                <tag>Precision</tag>
+                                <tag>Length</tag>
+                            </tags>
+                            <deliveryGuarantee>
+                                <deliveryGuarantee>exactlyOnce</deliveryGuarantee>
+                            </deliveryGuarantee>
+                            <confluentControlCenterIntegration>true</confluentControlCenterIntegration>
                         </configuration>
                     </execution>
                 </executions>

@@ -1,18 +1,5 @@
 #  JDBC Field Check Connector
 
-Fork TODOs:
-- Migrate to Maven (X)
-- Create JUnit Tests with @EmbeddedKafka from Spring Kafka ( )
-    - JDBCSinkLengthCheckTask
-        - Write test for start method (X)
-        - Write test for Put method (X)
-            - Using in-memory HSQL
-        - No test will be written for initWriter, flush, stop, convertToJSON, and version as they are trivial
-    - JdbcDbWriterWithFieldCheck
-        - Write test for write method (X)
-            - Using in-memory HSQL
-
-
 Out of the box Kafka JDBC connector is a generic connector which is designed to work with all kinds of Databases.
 For databases like Oracle, PostgreSQL etc users can setup field length constraints. 
 If the source system is not sending data which complies with these lengths, it will bring down your connector.
