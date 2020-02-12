@@ -1,0 +1,27 @@
+{
+  "name" : "jdbcwitherrorhandling",
+  "version" : "1.0-SNAPSHOT",
+  "title" : "Kafka Connect JDBC - Downstream DB Precision Enforcement",
+  "description" : "This JDBC connector expands on the regular JDBC connector in Confluent Hub to add the functionality of checking field requirements in the downstream database in order to attempt\ninserting records. The sink connector will check on field precision definition in order to decide whether to insert the record or not.\n\nNote: This only works if the downstream DB enforces field precision.\n\nIf the records isn't compatible, it will send the record to a configurable topic as a DLQ. Please read more in the repo link.",
+  "owner" : {
+    "username" : "rahulbats",
+    "name" : "Rahul Bhattacharya",
+    "url" : "https://github.com/rahulbats"
+  },
+  "support" : { },
+  "tags" : [ "Field", "Precision", "Length", "JDBC" ],
+  "features" : {
+    "supported_encodings" : [ "any" ],
+    "single_message_transforms" : true,
+    "confluent_control_center_integration" : true,
+    "kafka_connect_api" : true
+  },
+  "documentation_url" : "https://github.com/rahulbats/JdbcConnectWithFieldLengthCheck",
+  "docker_image" : { },
+  "license" : [ {
+    "name" : "Apache License 2.0",
+    "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+  } ],
+  "component_types" : [ "sink" ],
+  "release_date" : "2020-02-12"
+}
