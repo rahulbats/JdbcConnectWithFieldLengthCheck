@@ -1,0 +1,4 @@
+io/confluent/connect/validate/sink/JDBCSinkLengthCheckTask.class
+io/confluent/connect/validate/sink/JdbcDbWriterWithFieldCheck.class
+io/confluent/connect/validate/sink/JdbcDbWriterWithFieldCheck$1.class
+io/confluent/connect/validate/JDBCSinkLengthCheckConnector.class
