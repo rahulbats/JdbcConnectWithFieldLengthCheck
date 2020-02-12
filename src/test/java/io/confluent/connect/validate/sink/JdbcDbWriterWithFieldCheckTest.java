@@ -2,11 +2,8 @@ package io.confluent.connect.validate.sink;
 
 import io.confluent.connect.jdbc.dialect.DatabaseDialect;
 import io.confluent.connect.jdbc.dialect.DatabaseDialects;
-import io.confluent.connect.jdbc.dialect.SqliteDatabaseDialect;
 import io.confluent.connect.jdbc.sink.DbStructure;
 import io.confluent.connect.jdbc.sink.JdbcSinkConfig;
-import io.confluent.connect.jdbc.util.TableDefinition;
-import io.confluent.connect.jdbc.util.TableId;
 import org.apache.kafka.connect.data.*;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
@@ -17,10 +14,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.*;
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 
 public class JdbcDbWriterWithFieldCheckTest {
@@ -63,7 +58,7 @@ public class JdbcDbWriterWithFieldCheckTest {
         dbconn.commit();
 
         //Get Properties
-        Map<String, String> props = new HashMap<>();
+        Map<String, String> props = new HashMap<String, String>();
         props.put("connection.url", "jdbc:hsqldb:hsql://localhost:9001/TESTINGDB");
         props.put("connector.class", "io.confluent.connect.validate.JDBCSinkLengthCheckConnector");
         props.put("LENGTH_CHECK_DEAD_LETTER_TOPIC", "DLQTopic");

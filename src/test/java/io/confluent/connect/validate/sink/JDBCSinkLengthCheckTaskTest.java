@@ -1,35 +1,25 @@
 package io.confluent.connect.validate.sink;
 
 import static org.junit.Assert.*;
-
 import com.salesforce.kafka.test.KafkaTestUtils;
 import com.salesforce.kafka.test.junit4.SharedKafkaTestResource;
 import com.salesforce.kafka.test.listeners.PlainListener;
-import io.confluent.connect.jdbc.util.TableId;
-import junit.framework.TestCase;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.hsqldb.Server;
 import org.junit.*;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
-
-import scala.sys.Prop;
 
 
 public class JDBCSinkLengthCheckTaskTest{
@@ -85,7 +75,7 @@ public class JDBCSinkLengthCheckTaskTest{
     public void testStart() throws Exception{
 
         //Get Properties
-        Map<String, String> props = new HashMap<>();
+        Map<String, String> props = new HashMap<String, String>();
         props.put("connection.url", "jdbc:hsqldb:hsql://localhost:9001/TESTINGDB");
         props.put("connector.class", "io.confluent.connect.validate.JDBCSinkLengthCheckConnector");
         props.put("LENGTH_CHECK_DEAD_LETTER_TOPIC", "DLQTopic");
@@ -114,7 +104,7 @@ public class JDBCSinkLengthCheckTaskTest{
 
         JDBCSinkLengthCheckTask jdbctask2 = new JDBCSinkLengthCheckTask();
         //Get Properties
-        Map<String, String> props = new HashMap<>();
+        Map<String, String> props = new HashMap<String, String>();
         props.put("connection.url", "jdbc:hsqldb:hsql://localhost:9001/TESTINGDB");
         props.put("connector.class", "io.confluent.connect.validate.JDBCSinkLengthCheckConnector");
         props.put("LENGTH_CHECK_DEAD_LETTER_TOPIC", "DLQTopic");
@@ -155,14 +145,19 @@ public class JDBCSinkLengthCheckTaskTest{
                 .put("NAME", "Abraham")
                 .put("COMMENT","Hello");
 
-
+        // Write will fail due to constraint violation, ID length = 4, constraint = ID MUST BE 3 length or less
         jdbctask2.put(Collections.singleton(new SinkRecord(topic, 0, keySchema, 1L, valueSchema, failWrite, 0)));
+        // Write will fail due to constraint violation, NAME length = 7, constraint = NAME MUST BE 6 length or less
         jdbctask2.put(Collections.singleton(new SinkRecord(topic, 0, keySchema, 1L, valueSchema, failWrite2, 1)));
+        // Write will fail due to constraint violation, COMMENT length = 5, constraint = COMMENT MUST BE 4 length or less
         jdbctask2.put(Collections.singleton(new SinkRecord(topic, 0, keySchema, 1L, valueSchema, failWrite3, 2)));
+        // Write will fail due to constraint violation, ID = NULL, constraint = ID must be NOT NULL
         jdbctask2.put(Collections.singleton(new SinkRecord(topic, 0, keySchema, 1L, valueSchema, failWriteNull, 3)));
 
+        // Consuming DLQ from Broker
         List<ConsumerRecord<byte[], byte[]>> recordsConsumed = utils.consumeAllRecordsFromTopic("DLQTopic");
 
+        // DLQ consumption must = num of failed records
         assertEquals(4, recordsConsumed.size());
 
     }

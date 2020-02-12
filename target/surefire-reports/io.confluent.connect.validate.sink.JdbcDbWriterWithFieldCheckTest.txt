@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: io.confluent.connect.validate.sink.JdbcDbWriterWithFieldCheckTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.239 sec
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.229 sec
