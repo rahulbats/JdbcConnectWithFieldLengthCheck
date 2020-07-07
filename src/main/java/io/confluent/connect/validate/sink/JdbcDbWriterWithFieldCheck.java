@@ -57,7 +57,7 @@ public class JdbcDbWriterWithFieldCheck {
 
             long startofTableDef = new Date().getTime();
             TableDefinition tableDefinition = tableDefns.get(connection, tableId);
-            log.info("got tabledef in "+(new Date().getTime()-startofTableDef));
+            log.debug("got tabledef in "+(new Date().getTime()-startofTableDef));
 
 
             boolean correct =true;
